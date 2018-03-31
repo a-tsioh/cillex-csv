@@ -26,6 +26,25 @@ from botapi import BotaIgraph
 from botapad import Botapad
 
 import istex2csv as istex
+import rdf2csv as rdf
+
+
+@Composable
+def query_rdf(gid, q, graph=None, escape=True, **kwargs):
+
+    data = rdf.simple_query(q, escape)
+
+    bot = BotaIgraph(directed=True)
+    botapad = Botapad(bot, gid, "", delete=False, verbose=True, debug=False)
+
+    botapad.parse_csvrows(data, separator='auto', debug=False)
+    g = bot.get_igraph(weight_prop="weight")
+    g = prepare_graph(g)
+
+    g['meta']['date'] = datetime.datetime.now().strftime("%Y-%m-%d %Hh%M")
+    g['meta']['owner'] = None
+    g['query'] = {'q': q}
+    return g
 
 
 @Composable
@@ -152,7 +171,8 @@ def query_istex(gid, q, field, count=10, graph=None,**kwargs):
     g['query'] = { 'q': q, 'field':field , 'url':url}
     
     return g
-    
+
+
 
 def _weights(weightings):
     def _w( graph, vertex):
@@ -234,25 +254,26 @@ def search_engine(graphdb):
     engine.search.setup(in_name="request", out_name="graph")
 
     ## Search
-    def Search(query, results_count=10, **kwargs):
+    def Search(query, **kwargs):
         query, graph = db_graph(graphdb, query)
         gid = query['graph']
         
-        q = kwargs.pop("q", "*")
-        field = kwargs.pop("field", None)
+        q = kwargs.pop("URI")
+        # field = kwargs.pop("field", None)
         
-        g = query_istex(gid, q, field, results_count)
+        #g = query_istex(gid, q, field)
+        g = query_rdf(gid, q)
         graph = merge(gid, graph, g)
 
         nodes = query['nodes']
-        g = graph_articles(gid, graph, weighting=["1"], all_articles=True, cut=100, uuids=nodes, **kwargs )
-        return g
+        #g = graph_articles(gid, graph, weighting=["1"], all_articles=True, cut=100, uuids=nodes, **kwargs )
+        return graph
         
-    search = Optionable("IstexSearch")
+    search = Optionable("RDFSearch")
     search._func = Search
-    search.add_option("q", Text(default=u"clle erss"))
-    search.add_option("field", Text(choices=[ u"*", u"istex", u"auteurs", u"refBibAuteurs", u"keywords" ], default=u"*"))
-    search.add_option("results_count", Numeric( vtype=int, min=1, default=10, help="Istex results count"))
+    search.add_option("URI", Text(default=u"sino:好"))
+    # search.add_option("field", Text(choices=[ u"*", u"istex", u"auteurs", u"refBibAuteurs", u"keywords" ], default=u"*"))
+    # search.add_option("results_count", Numeric( vtype=int, min=1, default=10, help="Istex results count"))
     
     engine.search.set( search )
     return engine
@@ -388,27 +409,21 @@ def expand_prox_engine(graphdb):
             raise ValueError('No such node %s' % nodes)
 
         v = vs[0]
-        if ( v['nodetype'] == ("_%s_auteurs" % gid) ):
-            field = "auteurs"
-            q = v['properties']['label']
-        elif ( v['nodetype'] == ("_%s_refBibAuteurs" % gid) ):
-            field = "refBibAuteurs"
-            q = v['properties']['label']
-        elif ( v['nodetype'] == ("_%s_keywords" % gid) ):
-            field = "keywords"
-            q = v['properties']['label']
-        else: 
-            q = v['properties']['label']
-
-        g = query_istex(gid, q, field)
+        q = v['properties']['URI']
+        if ( v['nodetype'] == "Entity" ):
+            q = v['properties']['URI']
+        elif ( v['nodetype'] == "Literal" ):
+            q = v['properties']['id']
+        print(q)
+        g = query_rdf(gid, q, escape=False)
         graph = merge(gid, graph, g)
 
         pz = [ v.index ]
         vs = extract(graph, pz, **kwargs)
-        vs = [ (graph.vs[i]['uuid'],v) for i,v in vs]
-        articles = [ (v['uuid'], 1.) for v in graph.vs if v['nodetype'] == ("_%s_article" % gid) ]
-        return dict( articles + vs)
-        
+        print(vs)
+        vs = [ (graph.vs[i]['uuid'], v) for i, v in vs]
+        # articles = [ (v['uuid'], 1.) for v in graph.vs if v['nodetype'] == ("_%s_article" % gid) ]
+        return dict( vs)
 
     scores = Optionable("scores")
     scores._func = Expand
@@ -447,7 +462,7 @@ def explore_api(engines,graphdb ):
     # prox expand returns [(node,score), ...]
     view = EngineView(expand_prox_engine(graphdb))
     view.set_input_type(NodeExpandQuery())
-    view.add_output("scores", lambda x:x)
+    view.add_output("scores", lambda x: x)
 
     api.register_view(view, url_prefix="expand_px")
 

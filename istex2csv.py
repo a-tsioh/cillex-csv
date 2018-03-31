@@ -156,7 +156,7 @@ def get_schema():
     headers = [ "%s%s" % (e[2],e[3]) for e in COLS ]
     headers[0] = "@article: %s" % headers[0]
     headers = SCHEMA + [headers]
-
+    print("called,", headers)
     return headers
 
 def to_istex_url(q, field, size=10):
