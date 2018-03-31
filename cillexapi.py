@@ -7,6 +7,8 @@ import igraph
 import datetime
 import requests
 
+from collections import Counter
+
 from reliure.types import GenericType, Text, Numeric, Boolean
 from reliure.web import ReliureAPI, EngineView, ComponentView, RemoteApi
 from reliure.pipeline import Optionable, Composable
@@ -70,7 +72,28 @@ def vid(gid, v):
 def index(gid, graph, **kwargs):
     idx = { vid(gid, v): v for v in graph.vs }
     return idx
+
+def types_stats( items , opt={}):
+    counter = Counter(items)
+    return dict(counter)  
+    print counter
+
+@Composable
+def graph_stats(graph, **kwargs):
+    graph['meta']['stats'] = {}
+
+    stats = types_stats(graph.vs['nodetype'])
+    print stats
+    for e in graph['nodetypes']:
+        e['count'] = stats.get(e['uuid'], 0)
+    graph['meta']['stats']['nodetypes'] = stats
     
+    stats = types_stats(graph.es['edgetype'])
+    for e in graph['edgetypes']:
+        e['count'] = stats.get(e['uuid'], 0)
+    graph['meta']['stats']['edgetypes'] = stats
+    return graph
+
 @Composable
 def merge(gid, graph, g, **kwargs):
     """ merge g into graph, returns graph"""
@@ -131,7 +154,7 @@ def merge(gid, graph, g, **kwargs):
             #'date' : datetime.datetime.now().strftime("%Y-%m-%d %Hh%M")
         }
     graph['meta']['pedigree'] = pedigree.compute(graph)
-        
+    graph = graph_stats(graph)    
     return graph
     
 @Composable
@@ -154,6 +177,7 @@ def empty_graph(gid, headers=None, **kwargs):
             'node_count': graph.vcount(),
             'edge_count': graph.ecount(),
             'star_count': len( graph['starred'] ),
+            'stats' : {}
         }
     #graph['meta']['pedigree'] = pedigree.compute(graph)
 
