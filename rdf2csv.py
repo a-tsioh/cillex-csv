@@ -19,13 +19,15 @@ def rdf_get_var(x, l): return x[l]['value']
 
 
 def escape_uri(q):
-    parts = q.split(":", 1)
-    if len(parts) > 1:
-        pfx = parts[0] + ":"
-        q = parts[1]
-        uri = pfx + urllib2.quote(q.encode("utf-8"))
+    if q.startswith("http://"):
+        q = q[7:]
+        uri = "http://" + urllib2.quote(q.encode("utf-8"))
     else:
-        uri = "<" + urllib2.quote(q.encode("utf-8")) + ">"
+        parts = q.split(":", 1)
+        if len(parts) > 1:
+            pfx = parts[0] + ":"
+            q = parts[1]
+        uri = pfx + urllib2.quote(q.encode("utf-8"))
     return uri
 
 
@@ -42,7 +44,7 @@ def rdf_label_of_uri_unsafe(sparql, uri):
 
         SELECT ?label
         WHERE {
-            %s rdfs:label ?label .
+            <%s> rdfs:label ?label .
 
         }
         """ % (uri,)
@@ -70,7 +72,7 @@ def get_data_properties(sparql, q):
 
     SELECT ?v ?o
     WHERE {
-        %s ?v ?o . 
+        <%s> ?v ?o . 
         ?v a owl:DatatypeProperty .
     }
     """ % (q,)
@@ -102,7 +104,7 @@ def get_neighbors_entities(sparql, q):
 
     SELECT ?v ?o ?olabel
     WHERE {
-        { %s ?v ?o . }  
+        { <%s> ?v ?o . }  
         ?v a owl:ObjectProperty .
         ?o rdfs:label ?olabel .
 
@@ -144,5 +146,5 @@ def simple_query(q, escape=True):
     data_properties.extend(edges)
 
     graph_data = HEADER_ENTITIES + entities + HEADER_EDGES + object_properties + HEADER_LITERAL + literals + HEADER_LITERAL_EDGES + data_properties
-    print(graph_data)
+    print("\n".join([" , ".join(l) for l in graph_data]))
     return graph_data

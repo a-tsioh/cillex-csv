@@ -295,7 +295,7 @@ def search_engine(graphdb):
         
     search = Optionable("RDFSearch")
     search._func = Search
-    search.add_option("URI", Text(default=u"sino:好"))
+    search.add_option("URI", Text(default=u"http://silene.magistry.fr/data/nan/sinogram/好"))
     # search.add_option("field", Text(choices=[ u"*", u"istex", u"auteurs", u"refBibAuteurs", u"keywords" ], default=u"*"))
     # search.add_option("results_count", Numeric( vtype=int, min=1, default=10, help="Istex results count"))
     
@@ -439,7 +439,7 @@ def expand_prox_engine(graphdb):
         elif ( v['nodetype'] == "Literal" ):
             q = v['properties']['id']
         print(q)
-        g = query_rdf(gid, q, escape=False)
+        g = query_rdf(gid, q, escape=True)
         graph = merge(gid, graph, g)
 
         pz = [ v.index ]
