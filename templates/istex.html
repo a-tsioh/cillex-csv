@@ -39,31 +39,6 @@
         padding: 5em 0em;
       }
       
-      @media only screen and (max-width: 700px) {
-        .ui.fixed.menu {
-          display: none !important;
-        }
-        .secondary.pointing.menu .item,
-        .secondary.pointing.menu .menu {
-          display: none;
-        }
-        .secondary.pointing.menu .toc.item {
-          display: block;
-        }
-      }
-      
-      a.inverted { color:white;}
-      
-      iframe {
-          border: none;
-          }
-      
-      pre {
-          background: darkcyan;
-          padding: 6px;
-          margin: 0px 30px 10px 0px;
-      }
-      
       code.log {
           background: none;
           white-space:pre-wrap;
@@ -109,7 +84,7 @@
       #menu {
         position:absolute;
         background: {{color}};
-        top: 176px;
+        top: 42px;
       }
       
       #menu .divider { margin:3px }
@@ -161,18 +136,14 @@
       
       padagraph-model-popup {
           position:absolute;
-          top: 264px;
+          top: 20px;
           right:0px;
           margin:12px;
           max-height: calc(100% - 24px);
           overflow-y: auto;
           z-index:10;
       }
-      
-      .nofoot padagraph-model-popup {
-          top: 20px;
-      }
-      
+             
       padagraph-model-popup .propvalue {  color: #333; }
       
     </style>
@@ -191,7 +162,7 @@
         <script src="{{static_host}}/static/webcomponents-lite.js"></script>
         <script data-main="{{static_host}}/static/main" src="{{static_host}}/static/require.js"></script>
         <link rel="import" href="{{static_host}}/static/padagraph-gviz-min.html">
-        <div id="gviz" class="{{ 'nofoot' if not footer else '' }}">
+        <div id="gviz">
           <padagraph-gviz-json sync="{{sync}}" routes="{{routes}}" data="{{data}}">
             <padagraph-gviz options="{{options}}">
               <div id="viz"></div>

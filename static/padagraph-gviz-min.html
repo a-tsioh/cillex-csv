@@ -8541,7 +8541,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
                     }
                 }
             } else if (this.option.value != value) {
-                this.option.value = value;
+                this.option.value = this.option.parse(value);
             }
         },
 
@@ -8747,7 +8747,7 @@ require(['backbone'], function (Backbone) {
     }
 
   });
-});</script></dom-module><dom-module id="padagraph-vertex-card-m" assetpath=""><style>.ui.items { margin: 0px; cursor: hand; }
+});</script></dom-module><dom-module id="padagraph-vertex-card-m" assetpath=""><style>.ui.items { margin: 0px; margin-right: 6px; cursor: hand; }
 .ui.items .item { margin-bottom:2px }
 .ui.items .item .content { padding-left: 0.5em; }
 .ui.items .item .content .header { margin-top: 0.1em; }
@@ -8760,6 +8760,10 @@ require(['backbone'], function (Backbone) {
 .ui.comments .comment {  padding: 0em; }
 .ui.comments .comment .author { font-size: 0.9em; font-weight: initial; }
 .ui.comments.vertex-actions { padding-top: 0.3em; }
+.ui.comments.vertex-actions .actions {
+    margin-left: 40px;
+    margin-top: 4px;
+}
 </style><template><div on-mouseover="intersect" on-mouseout="desintersect" class="ui items"><div class="item"><div on-click="select" class="ui mini image"><template is="dom-if" if="{{is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}" stroke="white" stroke-width="3"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template><template is="dom-if" if="{{!is_selected}}"><svg width="36px" height="36px"><circle cx="18" cy="18" r="15" fill$="{{rgb_color}}"></circle><text x="50%" y="55%" alignment-baseline="middle" text-anchor="middle" fill="black">{{letter}}</text></svg></template></div><div on-click="select" class="content"><div title="{{model.id}}" class="header">{{model.label}}</div><div class="meta"><div class="date">{{ model.nodetype.label }}</div></div></div><div style="height:12px" data-rating="1" on-click="toggle_star" class="ui star rating"><i class="icon"></i></div></div><!--.ui.accordion.vertex-actions
   .title
     b Node attributes
@@ -8774,7 +8778,9 @@ require(['backbone'], function (Backbone) {
             span.metadata
                 .rating {{item.value}}
   
---><template is="dom-if" if="{{actions}}"><div class="ui comments vertex-actions"><div class="comment"><div class="content"><div class="actions"><a on-click="edit"><i class="edit icon"></i> Edit</a><a on-click="add_link"><i class="linkify icon"></i> Link</a><a on-click="expand"><i class="share alternate icon"></i> Expand</a><a on-click="explore"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Hide</a></div></div></div></div></template></div></template><script>'use strict';
+--><template is="dom-if" if="{{actions}}"><div class="ui comments vertex-actions"><div class="comment"><div class="content"><div class="actions"><!--a(on-click='edit')//| <i class="edit icon"></i> Edit
+--><!--a(on-click='add_link')//| <i class="linkify icon"></i> Link
+  --><a on-click="expand"><i class="share alternate icon"></i> Expand</a><a on-click="explore"><i class="eye icon"></i> Explore</a><a on-click="remove"><i class="remove icon"></i> Hide</a></div></div></div></div></template></div></template><script>'use strict';
 
 require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
   Polymer({
@@ -8903,7 +8909,8 @@ require(['backbone', 'jquery', 'pdgconst'], function (Backbone, $, Const) {
     },
 
     expand: function expand() {
-      var params = { graph: this.graph, nodes: [this.model.id], weights: [] };
+
+      var params = { graph: this.graph, expand: [this.model.id], weights: [] };
       Backbone.trigger('engine:expand_prox', params);
     },
 
@@ -9605,7 +9612,7 @@ require(['backbone', 'pdgconst'], function (Backbone, Const) {
                     Backbone.trigger('engine:explore', params);
                 }
             } else if (action == 'expand') {
-                var params = { graph: this.model.graph.id, nodes: [this.model.id], weights: [] };
+                var params = { graph: this.model.graph.id, expand: [this.model.id], weights: [] };
                 Backbone.trigger('engine:expand_prox', params);
             } else if (action == 'remove') {
                 Backbone.trigger(Const.remove_node, this.model);
@@ -9780,7 +9787,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
         }
 
     });
-});</script></dom-module><dom-module id="padagraph-model-popup" assetpath="./"><style>.card { width:400px}
+});</script></dom-module><dom-module id="padagraph-cluster-popup" assetpath="./"><style>.card { width:400px}
 .card .intersected { margin:4px; padding: 2px; border:none; }
 a.more { padding-right:12px; margin-top: -12px; }
 
@@ -9799,7 +9806,74 @@ span.name {
    //overflow-y: auto;
    //z-index:1;
 //}
-</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div class="sub header"><a href="#expand" on-click="expand" class="ui label">+10 </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui label">neighbors</a><a href="{{ geturl(model) }}" target="_blank" title="{{ model.id }}" class="ui label">{{ shortuuid(model) }}</a></div><div style="overflow-y:auto;" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template><padagraph-vtx-neighbors graph="{{graph}}" model="{{model}}"></padagraph-vtx-neighbors></div></div></template></div></template></template><script>'use strict';
+</style><template><template is="dom-if" if="{{ clusters }}"> <div class="ui card"></div></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-cluster-popup",
+
+    properties: {
+      clustering: { type: Object, value: function value() {}, observer: 'clusters_changed' }
+    },
+
+    created: function created() {
+      this._listener = {};
+      _.extend(this._listener, Backbone.Events);
+    },
+
+    clusters_changed: function clusters_changed(clustering) {
+
+      this._listener.stopListening();
+      if (!clustering) return;
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-collection-popup" assetpath="./"><style>.card { width:360px !important}
+     </style><template><template is="dom-if" if="{{ graph }}"> <div class="ui card"><padagraph-collection app="{{app}}" mode="node" graph="{{graph}}"></padagraph-collection></div></template></template><script>'use strict';
+
+require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
+  Polymer({
+    is: "padagraph-collection-popup",
+
+    properties: {
+      app: Object,
+      graph: Object
+    },
+
+    created: function created() {
+      this._listener = {};
+      _.extend(this._listener, Backbone.Events);
+    }
+
+  });
+});</script></dom-module><dom-module id="padagraph-model-popup" assetpath="./"><style>:host([hidden]) {
+   display: none !important;
+ }   
+.ui.card {
+   width: 360px !important;
+   margin: 4px 0px 4px 0px !important;
+   height: calc(100% - 15px);
+}
+.card .intersected {
+   margin: 6px 0px 0px 4px;
+   padding-bottom: 16px;
+}
+a.more { padding-right:12px; margin-top: -12px; }
+
+span.name {
+       display: inline-block;
+       color: #333;
+       font-weight: bold;
+       font-size: 1em;
+       margin-right: 6px;
+   }
+
+.sub.header {
+   padding-top: 7px;
+   padding-left: 40px;
+   margin-bottom: -5px;
+}
+</style><template><template is="dom-if" if="{{ model }}"> <div class="ui card"><template is="dom-if" if="{{ is_edge }}"><div class="item"><padagraph-edge-card-xl model="{{model}}"></padagraph-edge-card-xl></div></template><template is="dom-if" if="{{ is_vertex }}"> <div class="intersected"><padagraph-vertex-card-m model="{{model}}"></padagraph-vertex-card-m><div class="sub header"><a href="#expand" on-click="expand" class="ui small basic label">+10 </a><a href="#explore" on-click="explore" class="ui small basic label">explore </a><a href="{{ geturl(model) }}/neighbors" target="_blank" class="ui small basic label">neighbors</a><a href="{{ geturl(model) }}" target="_blank" title="{{ model.id }}" class="ui small basic label">{{ shortuuid(model) }}</a></div></div><div style="overflow: auto; height: calc(100% - 128px ); overflow-x: hidden" class="content"><template is="dom-if" if="{{image}}"> <img src="{{image}}" class="ui small centered image"><div class="ui divider"></div></template><template is="dom-repeat" items="[[props]]"> <div class="comment"><div class="content"><span class="name">{{item.name}}</span><padagraph-card-property prop="{{item}}" class="value"></padagraph-card-property></div></div></template><padagraph-vtx-neighbors graph="{{graph}}" model="{{model}}"></padagraph-vtx-neighbors></div></template></div></template></template><script>'use strict';
 
 require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbone, Cello, Gviz, Materials, Const) {
   Polymer({
@@ -9859,6 +9933,7 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
     modelChanged: function modelChanged(model) {
 
+      this.hidden = model == null;
       if (!model) return;
 
       this.image = model.properties.get('image');
@@ -9887,14 +9962,23 @@ require(['backbone', 'cello', 'gviz', 'materials', 'pdgconst'], function (Backbo
 
     expand: function expand() {
       var graph = this.model.graph;
-      var params = { graph: graph.id, nodes: [this.model.id], weights: [] };
+      var params = { graph: graph.id, expand: [this.model.id], weights: [] };
       Backbone.trigger('engine:expand_prox', params);
+    },
+
+    explore: function explore() {
+      var graph = this.model.graph;
+      var params = { graph: graph.id, query: this.model.id };
+      Backbone.trigger('engine:explore', params);
     },
 
     shortuuid: function shortuuid(model) {
       var uuid = null;
-      if (model) uuid = "" + model.id;
-      return model == null ? null : uuid.substring(0, 6) + '...' + uuid.substring(uuid.length - 4);
+      if (model) {
+        uuid = "" + model.id;
+        if (uuid.length > 6) return uuid.substring(0, 6) + '...' + uuid.substring(uuid.length - 4);
+      }
+      return uuid;
     }
 
   });
@@ -10718,17 +10802,17 @@ require(['backbone', 'jquery', 'semantic'], function (Backbone, $, S) {
         }
 
     });
-});</script></dom-module><dom-module id="padagraph-collection" assetpath="./"><template><style>.menu .form {
+});</script></dom-module><dom-module id="padagraph-collection" assetpath="./"><template><style>.ui.card { width:100% }
+.menu .form {
     padding-left: 12px;
     padding-top: 6px;
 }
 
 .dropdown.item .menu {
     left:-50px !important;
-}
-</style><div style="margin:0px" class="ui fluid secondary menu"><padagraph-collection-filter app="{{app}}" graph="{{graph}}" mode="{{mode}}"></padagraph-collection-filter><div class="hidden divider"></div><div class="ui right dropdown item"><i class="sort icon"></i>{{orderBy}}<div class="menu"><template is="dom-repeat" items="[[sorters]]"><div on-click="set_sort" class="item">{{item}}</div></template></div></div></div><div id="contentpan" style="max-height: calc(100% - 22px); margin-top:0px; overflow-x: hidden;" class="ui scrollable"><template is="dom-if" if="{{is_mode_node}}"> <template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(needs_update)}}"><padagraph-vertex-card-m model="{{item}}" intersects="intersects" actions="actions"></padagraph-vertex-card-m><div class="ui divider"></div></template></template><template is="dom-if" if="{{is_mode_edge}}"><template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(elements, needs_update)}}"><padagraph-edge-card-xs model="{{item}}" class="ui item comments"></padagraph-edge-card-xs><div class="ui divider"></div></template></template></div></template><script>'use strict';
+}</style><div class="ui card"><div style="margin:6px; margin-bottom: -1rem;" class="ui secondary menu"><padagraph-collection-filter app="{{app}}" graph="{{graph}}" mode="{{mode}}" class="item"></padagraph-collection-filter><div class="hidden divider"></div><div class="ui right dropdown item"><i class="sort icon"></i>{{orderBy}}<div class="menu"><template is="dom-repeat" items="[[sorters]]"><div on-click="set_sort" class="item">{{item}}</div></template></div></div></div><div class="ui divider"></div><div id="contentpan" style="max-height: calc(100% - 22px); margin-top:0px; overflow-x: hidden;" class="ui scrollable"><template is="dom-if" if="{{is_mode_node}}"> <template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(needs_update)}}"><padagraph-vertex-card-m model="{{item}}" intersects="intersects" actions="actions"></padagraph-vertex-card-m><div class="ui divider"></div></template></template><template is="dom-if" if="{{is_mode_edge}}"><template is="dom-repeat" items="[[elements]]" sort="{{sorted(orderBy, reverse)}}" filter="{{filtered(elements, needs_update)}}"><padagraph-edge-card-xs model="{{item}}" class="ui item comments"></padagraph-edge-card-xs><div class="ui divider"></div></template></template></div></div></template><script>'use strict';
 
-require(['backbone', 'jquery'], function (Backbone, $) {
+require(['backbone', 'jquery', 'semantic'], function (Backbone, $, semantic) {
 
     var sort = function sort(collection, keyf, reverse) {
 
@@ -10772,15 +10856,10 @@ require(['backbone', 'jquery'], function (Backbone, $) {
             _.extend(this._listener, Backbone.Events);
         },
 
-        attached: function attached() {
-            var _this = this;
-
-            this.async(function () {
-                $('.dropdown.item', _this).dropdown();
-            });
-        },
+        attached: function attached() {},
 
         setGraphModel: function setGraphModel(app, graph) {
+            var _this = this;
 
             this.is_mode_edge = this.mode == "edge";
             this.is_mode_node = this.mode == "node";
@@ -10809,6 +10888,10 @@ require(['backbone', 'jquery'], function (Backbone, $) {
             this._listener.listenTo(this.collection, 'reset', this.remove_all.bind(this));
 
             this._listener.listenTo(this.collection, 'filter:changed', this.need_update.bind(this));
+
+            this.async(function () {
+                $('.dropdown.item', _this).dropdown();
+            });
         },
 
         need_update: function need_update() {
@@ -10917,53 +11000,82 @@ fieldset {
 fieldset .segment{
     margin-left: -16px;
     margin-bottom: 20px;}
-  </style><template is="dom-if" if="{{props}}"><template is="dom-if" if="{{show}}"><div class="ui segment"><fieldset><div class="ui tabular menu"><div data-tab="tab-desc" class="active item">Description</div><div data-tab="tab-schema" class="item">Schema</div><div data-tab="tab-pedigree" class="item">Pedigree</div><div on-tap="desc" class="right floated item"><i class="close icon"></i></div></div><div data-tab="tab-desc" class="ui active tab"><div class="markdown"><a name="desc">       </a><p>{{props.description}}</p></div></div><div data-tab="tab-schema" class="ui tab"><div class="markdown"><a name="schema">       </a><p>{{schema}}</p></div></div><div data-tab="tab-pedigree" class="ui tab"><div class="ui list"><template is="dom-repeat" items="[[meta.pedigree]]"><div class="item"><div class="content"><a class="header">{{item.0}} : {{item.2}} </a><div class="description">{{item.1}} </div></div></div></template></div></div></fieldset></div></template><div id="labelsAndButtons" class="ui grid"> <div on-tap="desc" class="ui basic label"> 
+  
+#labelsAndButtons {
+      margin-top: 6px;
+}
+  </style><template is="dom-if" if="{{props}}"><template is="dom-if" if="{{show}}"><div class="ui segment"><fieldset><div class="ui secondary pointing menu"><div data-tab="tab-desc" class="active item">Description</div><div data-tab="tab-schema" class="item">Schema</div><div data-tab="tab-pedigree" class="item">Pedigree</div><div on-tap="desc" class="right floated item"><i class="close icon"></i></div></div><div data-tab="tab-desc" class="ui active tab"><div class="markdown"><a name="desc">       </a><p>{{props.description}}</p></div></div><div data-tab="tab-schema" class="ui tab"><a name="schema">       </a><div class="markdown"><div class="ui basic label">{{props.name}}</div><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div><h3>nodetypes</h3><div class="ui list"><template is="dom-repeat" items="[[schema.nodetypes]]"><div class="item"><div class="content"><div class="header">{{item.name}} : {{item.count}}</div><div class="description">{{item.properties}}</div></div></div></template></div><h3>edgetypes</h3><div class="ui list"><template is="dom-repeat" items="[[schema.edgetypes]]"><div class="item"><div class="content"><div class="header">{{item.name}} : {{item.count}}</div><div class="description">{{item.properties}}</div></div></div></template></div></div></div><div data-tab="tab-pedigree" class="ui tab"><div class="ui list"><template is="dom-repeat" items="[[meta.pedigree]]"><div class="item"><div class="content"><a class="header">{{item.0}} : {{item.2}} </a><div class="description">{{item.1}} </div></div></div></template></div></div></fieldset></div></template><div id="labelsAndButtons"><div on-tap="desc" class="ui basic label"> 
 {{props.name}}</div><div class="ui label"> <i class="circle thin icon"></i>{{meta.node_count}}</div><div class="ui label"> <i class="minus icon"></i>{{meta.edge_count}}</div><template is="dom-if" if="{{meta.star_count}}"><div class="ui label"> <i class="star thin icon"></i>{{meta.star_count}}</div></template><template is="dom-if" if="{{meta.owner}}"><div class="ui label">  <i class="user icon"></i>{{meta.owner}}</div></template><template is="dom-if" if="{{meta.date}}"><div class="ui label">  <i class="calendar icon"></i>{{meta.date}}</div></template><content></content></div></template></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic', 'cello', 'pdgconst'], function (Backbone, $, S, Cello, Const) {
-  Polymer({
-    is: "padagraph-labels-control",
+    Polymer({
+        is: "padagraph-labels-control",
 
-    properties: {
-      // engine for parameters ?  
-      app: Object,
-      graph: Object,
+        properties: {
+            // engine for parameters ?  
+            app: Object,
+            graph: Object,
 
-      meta: { type: Object },
-      props: { type: Object },
-      schema: { type: Object }
-    },
+            meta: { type: Object },
+            props: { type: Object },
+            schema: { type: Object }
+        },
 
-    observers: ["setupUI(app, graph)"],
+        observers: ["setupUI(app, graph)"],
 
-    setupUI: function setupUI(app, graph) {
-      var _this = this;
+        setupUI: function setupUI(app, graph) {
+            var _this = this;
 
-      if (!app || !graph) return;
+            if (!app || !graph) return;
 
-      for (var event in { 'reset': 1, 'merge': 1 }) graph.on(event, function () {
-        _this.set("meta", graph.meta.attributes);
-        for (var k in graph.meta.attributes) _this.notifyPath("meta." + k, _this.meta[k]);
+            var f = function f() {
+                _this.set("meta", graph.meta.attributes);
+                for (var k in graph.meta.attributes) _this.notifyPath("meta." + k, _this.meta[k]);
 
-        var schema = { nodetypes: graph.nodetypes,
-          edgetypes: graph.edgetypes };
-        _this.set("schema", JSON.stringify(schema));
+                var stats = graph.meta.get('stats');
+                var schema = {
+                    vcount: graph.meta.get('node_count'),
+                    ecount: graph.meta.get('edge_count'),
 
-        _this.set("props", graph.properties.attributes);
-        for (var k in _this.graph.properties.attributes) _this.notifyPath("props." + k, _this.props[k]);
-      });
-    },
+                    nodetypes: graph.nodetypes.models.map(function (e) {
+                        return {
+                            model: e, name: e.name,
+                            count: stats && 'nodetypes' in stats ? stats.nodetypes[e.id] | 0 : "-",
+                            properties: e.properties.models.map(function (e) {
+                                return (e.otype.multi ? "+" : "") + e.name + (e.otype['default'] ? "[" + e.otype['default'] + "]" : "");
+                            }).join(', ')
+                        };
+                    }),
 
-    desc: function desc() {
-      var _this2 = this;
+                    edgetypes: graph.edgetypes.models.map(function (e) {
+                        return {
+                            model: e, name: e.name,
+                            count: stats && 'edgetypes' in stats ? stats.edgetypes[e.id] | 0 : "-",
+                            properties: e.properties.models.map(function (e) {
+                                return e.name;
+                            }).join(' - ')
+                        };
+                    })
+                };
+                _this.set("schema", schema);
 
-      this.show = !this.show;
-      this.async(function () {
-        $('.tabular.menu .item', _this2).tab();
-      });
-    }
+                _this.set("props", graph.properties.attributes);
+                for (var k in _this.graph.properties.attributes) _this.notifyPath("props." + k, _this.props[k]);
+            };
 
-  });
+            for (var event in { 'reset': 1, 'merge': 1 }) graph.on(event, f);
+        },
+
+        desc: function desc() {
+            var _this2 = this;
+
+            this.show = !this.show;
+            this.async(function () {
+                $('.secondary.pointing.menu .item', _this2).tab();
+            });
+        }
+
+    });
 });</script></dom-module><dom-module id="padagraph-engine-control" assetpath="./"><style></style><template><div data-content="blocks" class$="{{button_class('blocks ui dropdown', asitem, aslabel)}}" class="blocks ui dropdown"><i class$="{{ icon(engine)}}" title="{{block.name}}"></i><div class="menu"><div class="header">{{block.name}}</div><div class="divider"></div><template is="dom-repeat" items="[[block.components.models]]"><div data-value$="{{item.name}}" class="item">{{item.name}}</div></template></div></div></template><script>'use strict';
 
 require(['backbone', 'jquery', 'semantic', 'cello', 'pdgconst'], function (Backbone, $, S, Cello, Const) {
